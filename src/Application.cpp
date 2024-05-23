@@ -152,8 +152,19 @@ int main(void)
     };
 
     /*
+        创建顶点数组
+    */
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    
+
+    /*
         创建顶点缓冲
     */
+
+    //绑定vao
+    glBindVertexArray(vao);
+
     //顶点缓冲区编号
     unsigned int buffer;
     //创建顶点缓冲区
@@ -161,7 +172,7 @@ int main(void)
     //绑定使用的顶点缓冲区
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     //向顶点缓冲区添加数据
-    glBufferData(GL_ARRAY_BUFFER, 6 *2 * sizeof(float),position,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 *2 * sizeof(float),position,GL_STATIC_DRAW);
 
     /*
         创建索引缓冲区,解决顶点复用的性能
@@ -177,7 +188,7 @@ int main(void)
     /*
     * 
     *   顶点不只有位置一个属性，可以包括纹理坐标和法线等，
-        参数1：index  代表顶点的属性的下标，从0开始
+        参数1：index  代表在顶点数组中，这个顶点缓冲区所在的下标，顶点数组中可以包含不同的顶点策略
         参数2：size 指代当前顶点属性的分量数字（就是这个属性有几个数据，比如位置下，x，y就有两个数据），必须为1、2、3、4
         参数3：type 指代数据类型，一般用宏常量，这里是浮点，就是GL_FLOAT
         参数4：stride 指代顶点属性的大小，这里属性只有位置，两个坐标值，就是8个字节
@@ -186,6 +197,9 @@ int main(void)
     //启用顶点属性
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 8, 0);
+
+    //解绑vao
+    glBindVertexArray(0);
 
     ////创建顶点着色器
     //std::string vertexShader =
@@ -239,8 +253,12 @@ int main(void)
            
         GLCALL(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
+        //绑定顶点数组
+        glBindVertexArray(vao);
         //索引缓冲区调用(添加了错误处理)
         GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        glBindVertexArray(0);
+
 
         if (r > 1.0f)
             increment = -0.05f;
