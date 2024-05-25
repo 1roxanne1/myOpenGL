@@ -1,12 +1,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
+
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBufferLayout.h"
+
 
 //顶点着色器和片段着色器的源码结构体
 struct ShaderProgramSource
@@ -133,17 +138,18 @@ int main(void)
             2,3,0
         };
 
-        /*
-            创建顶点数组
-        */
-        unsigned int vao;
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
+        //创建顶点数组
+        VertexArray va;
+
         //顶点缓冲
         VertexBuffer vb(position, 4 * 2 * sizeof(float));
+
         //启用顶点属性
-        GLCALL(glEnableVertexAttribArray(0));
-        GLCALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 8, 0));
+        //1.顶点数据布局( glVertexAttribPointer )
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.addBuffer(vb, layout);
+
         //索引缓冲
         IndexBuffer ib(indices, 6);
 
@@ -158,7 +164,7 @@ int main(void)
         GLCALL(glUniform4f(location, 0.7f, 0.3f, 0.8f, 1.0f));
 
         //解除绑定
-        GLCALL(glBindVertexArray(0)); //顶点数组
+        GLCALL(va.Unbind()); //顶点数组
         GLCALL(glUseProgram(0)); //着色器程序
         GLCALL(vb.Unbind()); //顶点缓冲区
         GLCALL(ib.Unbind());
@@ -172,15 +178,14 @@ int main(void)
             glClear(GL_COLOR_BUFFER_BIT);
 
             //绑定
+            GLCALL(va.Bind());
             GLCALL(glUseProgram(shader));
-            GLCALL(glBindVertexArray(vao));
             GLCALL(vb.Bind());
             GLCALL(ib.Bind());
    
             //索引缓冲区调用
             GLCALL(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
             GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
-            glBindVertexArray(0);
 
 
             if (r > 1.0f)
